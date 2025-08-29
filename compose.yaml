@@ -1,0 +1,6 @@
+name: backend-services
+
+include:
+    - ./notebook-backend/compose.yaml
+    - ./notes-backend/compose.yaml
+    - ./reverse-proxy/compose.yaml

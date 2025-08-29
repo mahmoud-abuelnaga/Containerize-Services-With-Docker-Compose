@@ -1,0 +1,58 @@
+name: notes-backend
+
+services:
+    notes-nodejs-server:
+        build:
+            dockerfile: Dockerfile
+            context: .
+            target: production
+
+        env_file:
+            - .env.production
+
+        ports:
+            - "3001:3000"
+
+        networks:
+            - notes-network
+
+        depends_on:
+            - notes-db-server
+
+        develop:
+            watch:
+                - path: package*.json
+                  action: rebuild
+
+                - path: src/
+                  target: /app/src/
+                  action: sync
+
+    notes-db-server:
+        image: mongodb/mongodb-community-server:8.0-ubi9
+        env_file:
+            - .env.production
+
+        ports:
+            - "27018:27017"
+
+        volumes:
+            - type: bind
+              source: ./init/mongo-init.js
+              target: /docker-entrypoint-initdb.d/mongo-init.js
+              read_only: true
+
+            - type: volume
+              source: notes-db-data
+              target: /data/db
+
+        networks:
+            - notes-network
+
+volumes:
+    notes-db-data:
+        driver: local
+
+networks:
+    notes-network:
+        driver: bridge

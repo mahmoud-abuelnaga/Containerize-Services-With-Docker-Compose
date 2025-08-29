@@ -1,0 +1,13 @@
+services:
+    notes-nodejs-server:
+        networks:
+            - reverse-proxy-network
+
+    notebook-nodejs-server:
+        networks:
+            - reverse-proxy-network
+
+    reverse-proxy-server:
+        depends_on:
+            - notes-nodejs-server
+            - notebook-nodejs-server

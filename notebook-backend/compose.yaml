@@ -1,0 +1,64 @@
+name: notebook-backend
+
+services:
+    notebook-nodejs-server:
+        build:
+            dockerfile: Dockerfile
+            context: .
+            target: production
+
+        env_file:
+            - .env.production
+
+        ports:
+            - "3000:3000"
+
+        networks:
+            - notebook-network
+
+        depends_on:
+            - notebook-db-server
+
+        develop:
+            watch:
+                - path: package*.json
+                  action: rebuild
+
+                - path: src/
+                  target: /app/src/
+                  action: sync
+
+    notebook-db-server:
+        image: mongodb/mongodb-community-server:8.0-ubi9
+        env_file:
+            - .env.production
+
+        ports:
+            - "27017:27017"
+
+        volumes:
+            - type: bind
+              source: ./init/mongo-init.js
+              target: /docker-entrypoint-initdb.d/mongo-init.js
+              read_only: true
+
+            - type: volume
+              source: notebook-db-data
+              target: /data/db
+
+        networks:
+            - notebook-network
+
+        develop:
+            watch:
+                - path: ./init/mongo-init.js
+                  target: /docker-entrypoint-initdb.d/mongo-init.js
+                  action: rebuild
+
+volumes:
+    notebook-db-data:
+        driver: local
+
+networks:
+    notebook-network:
+        driver: bridge
